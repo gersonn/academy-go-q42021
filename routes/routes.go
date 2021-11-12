@@ -1,16 +1,16 @@
 package routes
 
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
-	"mime/multipart"
 	"net/http"
+
+	csv "gobootcamp/common"
 
 	"github.com/gorilla/mux"
 )
 
-type Model struct {
+type Person struct {
 	Id   int
 	Name string
 }
@@ -32,21 +32,15 @@ func readCsv(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	ReadCsv(file)
+	persons, err := csv.CsvToPersons(file)
 
-	fmt.Fprintf(w, "csv", handler.Filename)
-	fmt.Println("Endpoint Hit: read csv!")
-
-}
-
-func ReadCsv(f multipart.File) ([][]string, error) {
-	lines, err := csv.NewReader(f).ReadAll()
 	if err != nil {
-		return [][]string{}, err
+		// todo: improve error handling
 	}
 
-	fmt.Println(lines)
-	return lines, nil
+	fmt.Fprintf(w, "csv", persons, handler.Filename)
+	fmt.Println("Endpoint Hit: read csv!")
+
 }
 
 func HandleRequests() {
