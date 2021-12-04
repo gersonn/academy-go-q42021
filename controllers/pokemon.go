@@ -44,7 +44,7 @@ func (p *PokemonController) GetPokemonById(c *gin.Context) {
 }
 
 func (p *PokemonController) GetPokemonsFromPokeApi(c *gin.Context) {
-	// question: is there a simpliest way to parse the param?
+
 	resp, err := p.PokemonRepo.GetPokemonsFromPokeAPI()
 
 	if err != nil {
