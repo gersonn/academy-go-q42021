@@ -29,8 +29,15 @@ func CsvToPokemon(f multipart.File) (models.Pokemons, error) {
 	return pokemons, nil
 }
 
-func worker(t string, jobs <-chan []string, results chan<- models.Pokemon) {
+func worker(t string, ipw int, jobs <-chan []string, results chan<- models.Pokemon) {
+	counter := 0
+
 	for {
+		counter++
+		if counter > ipw {
+			break
+		}
+
 		select {
 		case job, ok := <-jobs:
 			if !ok {
@@ -38,36 +45,31 @@ func worker(t string, jobs <-chan []string, results chan<- models.Pokemon) {
 			}
 
 			p := parsePokemon(job)
-			if t == "odd" && p.Id%2 == 0 {
-				results <- p
-			} else if t == "even" && p.Id%2 != 0 {
-				results <- p
-			}
+			results <- p
 		}
 	}
 }
 
-func WorkerPoolReadCSV(f multipart.File, numJobs int, itemsPerWorker int, t string) (models.Pokemons, error) {
+func WorkerPoolReadCSV(f multipart.File, items int, itemsPerWorker int, t string) (models.Pokemons, error) {
 	reader := csv.NewReader(f)
 	var pokemons models.Pokemons
 
-	numWorkers := numJobs / itemsPerWorker
+	numWorkers := 5
 	fmt.Println(numWorkers)
-	jobs := make(chan []string, numJobs)
-	res := make(chan models.Pokemon, numJobs)
+	jobs := make(chan []string, items)
+	res := make(chan models.Pokemon, items)
 
 	var wg sync.WaitGroup
-
 	for w := 0; w < numWorkers; w++ {
 		wg.Add(1)
 
 		go func() {
+			worker(t, itemsPerWorker, jobs, res)
 			defer wg.Done()
-			worker(t, jobs, res)
 		}()
 	}
 
-	for j := 1; j <= numJobs; j++ {
+	for j := 1; j <= items*2; j++ {
 		rStr, err := reader.Read()
 		if err == io.EOF {
 			break
@@ -76,6 +78,13 @@ func WorkerPoolReadCSV(f multipart.File, numJobs int, itemsPerWorker int, t stri
 			fmt.Println("ERROR: ", err.Error())
 			break
 		}
+
+		if t == "odd" && j%2 != 0 {
+			continue
+		} else if t == "even" && j%2 == 0 {
+			continue
+		}
+
 		jobs <- rStr
 	}
 
