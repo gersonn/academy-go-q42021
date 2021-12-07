@@ -32,21 +32,17 @@ func CsvToPokemon(f multipart.File) (models.Pokemons, error) {
 func worker(t string, ipw int, jobs <-chan []string, results chan<- models.Pokemon) {
 	counter := 0
 
-	for {
+	for j := range jobs {
+
+		//	this validates a worker only reads the number of items_per_worker established
 		counter++
 		if counter > ipw {
 			break
 		}
 
-		select {
-		case job, ok := <-jobs:
-			if !ok {
-				return
-			}
+		p := parsePokemon(j)
+		results <- p
 
-			p := parsePokemon(job)
-			results <- p
-		}
 	}
 }
 
