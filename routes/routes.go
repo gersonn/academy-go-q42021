@@ -2,12 +2,11 @@ package routes
 
 import (
 	"gobootcamp/controllers"
-	"gobootcamp/repositories"
 
 	"github.com/gin-gonic/gin"
 )
 
-func HandleRequests() {
+func HandleRequests(p controllers.PokemonController) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/_health", func(c *gin.Context) {
@@ -16,11 +15,11 @@ func HandleRequests() {
 		})
 	})
 
-	pokemonController := controllers.PokemonController{PokemonRepo: &repositories.PokemonRepository{}}
-	r.GET("/pokemon/:id", pokemonController.GetPokemonById)
-	r.GET("/pokeapi", pokemonController.GetPokemonsFromPokeApi)
-	r.POST("/pokemon/csv", pokemonController.ReadCsv)
-	r.POST("/pokemon/workerpool", pokemonController.GetPokemonsWithWorkerPool)
+	r.GET("/pokemon/:id", p.GetPokemonById)
+	r.GET("/pokeapi", p.GetPokemonsFromPokeApi)
+	r.POST("/pokemon/csv", p.ReadCsv)
+	r.POST("/pokemon/workerpool", p.GetPokemonsWithWorkerPool)
 
-	r.Run() // listen and serve on 0.0.0.0:8080
+	return r
+	//r.Run() // listen and serve on 0.0.0.0:8080
 }
