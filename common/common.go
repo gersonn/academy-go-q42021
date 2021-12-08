@@ -31,19 +31,9 @@ func CsvToPokemon(f multipart.File) (models.Pokemons, error) {
 }
 
 func worker(t string, ipw int, jobs <-chan []string, results chan<- models.Pokemon) {
-	counter := 0
-
 	for j := range jobs {
-
-		//	this validates a worker only reads the number of items_per_worker established
-		counter++
-		if counter > ipw {
-			break
-		}
-
 		p := parsePokemon(j)
 		results <- p
-
 	}
 }
 
@@ -56,7 +46,7 @@ func WorkerPoolReadCSV(f multipart.File, items int, itemsPerWorker int, t string
 	reader := csv.NewReader(f)
 	var pokemons models.Pokemons
 
-	numWorkers := 5
+	numWorkers := items / itemsPerWorker
 	jobs := make(chan []string, items)
 	res := make(chan models.Pokemon, items)
 

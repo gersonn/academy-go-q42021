@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"gobootcamp/common"
-	"gobootcamp/repositories"
+	"gobootcamp/models"
 )
 
 type PokemonController struct {
-	PokemonRepo *repositories.PokemonRepository
+	PokemonRepo models.PokemonRepository
 }
 
 func (p *PokemonController) ReadCsv(c *gin.Context) {
